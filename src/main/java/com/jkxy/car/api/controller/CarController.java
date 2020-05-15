@@ -6,6 +6,7 @@ import com.jkxy.car.api.utils.JSONResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -16,6 +17,8 @@ public class CarController {
     @Autowired
     private CarService carService;
 
+    private static int START_PAGE = 1;
+    private static int END_PAGE = 6;
     /**
      * 查询所有
      *
@@ -84,5 +87,52 @@ public class CarController {
     public JSONResult insertCar(Car car) {
         carService.insertCar(car);
         return JSONResult.ok();
+    }
+
+    /**
+     *通过车名购买车辆
+     * @param car
+     * @return
+     */
+    @PostMapping("buyCar")
+    public JSONResult buyCar(Car car){
+        int buyNum = car.getStock();
+        List<Car> cars = carService.findByCarName(car.getCarName());
+        for(Car carTemp : cars){
+            if(carTemp.getCarSeries().equals(car.getCarSeries())){
+                Car carFactory = carService.findById(carTemp.getId());
+                if(carFactory.getStock()<buyNum){
+                    return JSONResult.errorMsg("购买数量超出当前库存");
+                }else{
+                    int ans = carFactory.getStock() - buyNum;
+                    carFactory.setStock(ans);
+                    carService.updateById(carFactory);
+                    return JSONResult.ok();
+                }
+            }
+        }
+        return JSONResult.errorMsg("不存在该车");
+    }
+
+
+    /**
+     *通过车系模糊查询
+     *
+     * @param car
+     * @return
+     */
+    @PostMapping("searchCar")
+    public JSONResult searchCar(Car car){
+        List<Car> cars = carService.searchByCarName(car);
+        List<Car> carResults = new ArrayList<>();
+
+        if(cars.size()<END_PAGE){
+            return JSONResult.ok(cars);
+        }else {
+            for(int i = START_PAGE;i < END_PAGE; i++){
+                carResults.add(cars.get(i));
+            }
+            return JSONResult.ok(carResults);
+        }
     }
 }

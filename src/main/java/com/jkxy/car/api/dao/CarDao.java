@@ -20,9 +20,13 @@ public interface CarDao {
     @Delete("delete from carMessage where id = #{id}")
     void deleteById(int id);
 
-    @Update("update carMessage set carName=#{carName},carType=#{carType},price=#{price},carSeries=#{carSeries} where id = #{id}")
+    @Update("update carMessage set carName=#{carName},carType=#{carType},price=#{price},carSeries=#{carSeries},stock=#{stock} where id = #{id}")
     void updateById(Car car);
 
-    @Insert("insert into carMessage(carName,carType,price,carSeries) values(#{carName},#{carType},#{price},#{carSeries})")
+    @Insert("insert into carMessage(carName,carType,price,carSeries,stock) values(#{carName},#{carType},#{price},#{carSeries},#{stock})")
     void insertCar(Car car);
+
+    @Select("select * from carMessage where carName = #{carName} and carSeries like concat('%',#{carSeries},'%') ")
+    List<Car> searchByCarName(Car car);
+
 }
